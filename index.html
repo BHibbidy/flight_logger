@@ -284,6 +284,25 @@
             color: white;
             transform: translateX(5px);
         }
+
+        .editable-code {
+            cursor: text;
+            text-decoration: underline dotted;
+            text-underline-offset: 4px;
+            padding: 0 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .editable-code:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .editable-code:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            text-decoration: underline solid;
+        }
     </style>
 </head>
 
@@ -470,7 +489,7 @@
 
         function setArrival(airport, hh, mm) {
             if (airport) {
-                arrivalDisplay.innerHTML = `${airport.code} &bull; Arrived at ${hh}:${mm}`;
+                arrivalDisplay.innerHTML = `<span class="editable-code" contenteditable="true" id="editableDest" oninput="document.getElementById('destination').value = this.innerText">${airport.code}</span> &bull; Arrived at ${hh}:${mm}`;
                 document.getElementById('destination').value = airport.code;
             } else {
                 arrivalDisplay.textContent = `Arrived at ${hh}:${mm}`;
@@ -479,7 +498,7 @@
 
         function setDeparture(airport, hh, mm) {
             if (airport) {
-                timeDisplay.innerHTML = `${airport.code} &bull; Departed at ${hh}:${mm}`;
+                timeDisplay.innerHTML = `<span class="editable-code" contenteditable="true" id="editableOrigin" oninput="document.getElementById('origin').value = this.innerText">${airport.code}</span> &bull; Departed at ${hh}:${mm}`;
                 document.getElementById('origin').value = airport.code;
             } else {
                 timeDisplay.textContent = `Departed at ${hh}:${mm}`;
