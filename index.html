@@ -315,62 +315,107 @@
         .airport-option-btn:hover {
             background: var(--bg-color-3);
             color: white;
+            transform: translateX(5px);
+        }
 
-            .editable-code:focus {
-                outline: none;
-                background: rgba(255, 255, 255, 0.2);
-                text-decoration: underline solid;
+        .editable-code {
+            cursor: text;
+            text-decoration: underline dotted;
+            text-underline-offset: 4px;
+            padding: 0 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .editable-code:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .editable-code:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            text-decoration: underline solid;
+        }
+
+        .suggestion-box {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: #fff;
+            font-size: 0.95rem;
+            text-align: left;
+            width: 90%;
+            max-width: 300px;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .suggestion-box h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .suggestion-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suggestion-flight {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .suggestion-time {
+            opacity: 0.8;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
             }
 
-            .suggestion-box {
-                margin-top: 1.5rem;
-                padding: 1.25rem;
-                background: rgba(0, 0, 0, 0.4);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
-                color: #fff;
-                font-size: 0.95rem;
-                text-align: left;
-                width: 90%;
-                max-width: 300px;
-                backdrop-filter: blur(5px);
-                animation: fadeIn 0.5s ease;
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-loader {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 1.5rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            font-size: 0.9rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
             }
 
-            .suggestion-box h3 {
-                margin: 0 0 0.5rem 0;
-                font-size: 0.8rem;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                opacity: 0.7;
+            100% {
+                transform: rotate(360deg);
             }
-
-            .suggestion-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .suggestion-flight {
-                font-weight: 600;
-                font-size: 1.1rem;
-            }
-
-            .suggestion-time {
-                opacity: 0.8;
-            }
-
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(10px);
-                }
-
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
+        }
     </style>
 </head>
 
