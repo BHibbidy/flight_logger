@@ -257,6 +257,33 @@
         .submit-btn:hover {
             opacity: 0.9;
         }
+
+        .airport-option-btn {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            color: var(--text-color);
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .airport-option-btn {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .airport-option-btn:hover {
+            background: var(--bg-color-3);
+            color: white;
+            transform: translateX(5px);
+        }
     </style>
 </head>
 
@@ -284,6 +311,17 @@
             </svg>
             Manual Search
         </button>
+    </div>
+
+    <div class="modal" id="airportSelectionModal">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>Select Airport</h2>
+                <button class="close-btn"
+                    onclick="document.getElementById('airportSelectionModal').classList.remove('active')">&times;</button>
+            </div>
+            <div id="airportList"></div>
+        </div>
     </div>
 
     <div class="modal" id="searchModal">
@@ -360,17 +398,152 @@
                 const hh = String(now.getHours()).padStart(2, '0');
                 const mm = String(now.getMinutes()).padStart(2, '0');
 
-                timeDisplay.textContent = `Departed at ${hh}:${mm}`;
+                timeDisplay.textContent = `Finding location...`;
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const airportsInRange = findAirportsInRange(position.coords.latitude, position.coords.longitude, 20); // 20 miles
+
+                            if (airportsInRange.length === 0) {
+                                setDeparture(null, hh, mm);
+                            } else if (airportsInRange.length === 1) {
+                                setDeparture(airportsInRange[0], hh, mm);
+                            } else {
+                                showAirportSelection(airportsInRange, (selected) => {
+                                    setDeparture(selected, hh, mm);
+                                });
+                            }
+                        },
+                        (error) => {
+                            console.warn("Geolocation error:", error);
+                            setDeparture(null, hh, mm);
+                        },
+                        { timeout: 5000 }
+                    );
+                } else {
+                    setDeparture(null, hh, mm);
+                }
+
                 actionText.textContent = 'Arrive';
                 actionIcon.innerHTML = LANDING_PATH;
                 isDeparted = true;
+                document.getElementById('date').valueAsDate = new Date();
             } else {
                 // Arrive Flow
-                alert('Arrived! Now you can manually confirm flight details.');
-                // In a full implementation, this could trigger the manual form with pre-filled duration
-                modal.classList.add('active');
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        const airportsInRange = findAirportsInRange(position.coords.latitude, position.coords.longitude, 20);
+                        if (airportsInRange.length > 0) {
+                            // For arrival, just pre-fill the nearest one or show selection if desired
+                            // To keep it simple, we'll just show the manual form as requested, 
+                            // maybe auto-filling the destination if only one is found.
+                            if (airportsInRange.length === 1) {
+                                document.getElementById('destination').value = airportsInRange[0].code;
+                            }
+                        }
+                        modal.classList.add('active');
+                    }, () => {
+                        modal.classList.add('active');
+                    });
+                } else {
+                    modal.classList.add('active');
+                }
             }
         };
+
+        function setDeparture(airport, hh, mm) {
+            if (airport) {
+                timeDisplay.innerHTML = `${airport.code} &bull; Departed at ${hh}:${mm}`;
+                document.getElementById('origin').value = airport.code;
+            } else {
+                timeDisplay.textContent = `Departed at ${hh}:${mm}`;
+            }
+        }
+
+        const AIRPORTS = [
+            { code: 'BOI', name: 'Boise Air Terminal', lat: 43.5644, lon: -116.2228 },
+            { code: 'PDX', name: 'Portland International', lat: 45.5891, lon: -122.5935 },
+            { code: 'SEA', name: 'Seattle-Tacoma', lat: 47.4489, lon: -122.3094 },
+            { code: 'SFO', name: 'San Francisco International', lat: 37.6213, lon: -122.3790 },
+            { code: 'LAX', name: 'Los Angeles International', lat: 33.9416, lon: -118.4085 },
+            { code: 'JFK', name: 'John F. Kennedy International', lat: 40.6413, lon: -73.7781 },
+            { code: 'ORD', name: 'OHare International', lat: 41.9742, lon: -87.9073 },
+            { code: 'DFW', name: 'Dallas/Fort Worth International', lat: 32.8998, lon: -97.0403 },
+            { code: 'ATL', name: 'Hartsfield-Jackson Atlanta', lat: 33.6407, lon: -84.4277 },
+            { code: 'DEN', name: 'Denver International', lat: 39.8561, lon: -104.6737 },
+            { code: 'SLC', name: 'Salt Lake City International', lat: 40.7899, lon: -111.9791 },
+            { code: 'PHX', name: 'Phoenix Sky Harbor', lat: 33.4342, lon: -112.0081 },
+            { code: 'LAS', name: 'Harry Reid International', lat: 36.0840, lon: -115.1537 },
+            { code: 'EWR', name: 'Newark Liberty', lat: 40.6895, lon: -74.1745 },
+            { code: 'BOS', name: 'Logan International', lat: 42.3656, lon: -71.0096 },
+            { code: 'CLT', name: 'Charlotte Douglas', lat: 35.2144, lon: -80.9473 },
+            { code: 'MCO', name: 'Orlando International', lat: 28.4281, lon: -81.3060 },
+            { code: 'BWI', name: 'Baltimore/Washington International', lat: 39.1754, lon: -76.6683 },
+            { code: 'MDW', name: 'Chicago Midway', lat: 41.7868, lon: -87.7522 },
+            { code: 'MSP', name: 'Minneapolis-Saint Paul International', lat: 44.8848, lon: -93.2223 },
+            { code: 'DTW', name: 'Detroit Metropolitan', lat: 42.2125, lon: -83.3533 },
+            { code: 'PHL', name: 'Philadelphia International', lat: 39.8722, lon: -75.2411 },
+            { code: 'LGA', name: 'LaGuardia', lat: 40.7769, lon: -73.8740 },
+            { code: 'IAD', name: 'Washington Dulles', lat: 38.9445, lon: -77.4558 },
+            { code: 'DCA', name: 'Ronald Reagan Washington National', lat: 38.8512, lon: -77.0402 },
+            { code: 'SAN', name: 'San Diego International', lat: 32.7335, lon: -117.1897 },
+            { code: 'TPA', name: 'Tampa International', lat: 27.9755, lon: -82.5332 },
+            { code: 'FLL', name: 'Fort Lauderdale-Hollywood International', lat: 26.0726, lon: -80.1506 },
+            { code: 'MIA', name: 'Miami International', lat: 25.7959, lon: -80.2870 },
+            { code: 'HNL', name: 'Daniel K. Inouye International', lat: 21.3178, lon: -157.9202 },
+            { code: 'AUS', name: 'Austin-Bergstrom International', lat: 30.1945, lon: -97.6699 },
+            { code: 'BNA', name: 'Nashville International', lat: 36.1245, lon: -86.6782 },
+            { code: 'MDW', name: 'Chicago Midway', lat: 41.7868, lon: -87.7522 },
+            { code: 'STL', name: 'St. Louis Lambert International', lat: 38.7477, lon: -90.3597 },
+            { code: 'HOU', name: 'William P. Hobby', lat: 29.6454, lon: -95.2789 },
+            { code: 'IAH', name: 'George Bush Intercontinental', lat: 29.9804, lon: -95.3397 },
+            { code: 'SMF', name: 'Sacramento International', lat: 38.6954, lon: -121.5908 },
+            { code: 'SNA', name: 'John Wayne', lat: 33.6757, lon: -117.8675 },
+            { code: 'OAK', name: 'Oakland International', lat: 37.7213, lon: -122.2207 },
+            { code: 'BUR', name: 'Hollywood Burbank', lat: 34.2007, lon: -118.3590 },
+            { code: 'ONT', name: 'Ontario International', lat: 34.0560, lon: -117.6012 },
+            { code: 'SJC', name: 'San Jose International', lat: 37.3639, lon: -121.9289 }
+        ];
+
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 3958.8; // Earth's radius in miles
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function findAirportsInRange(lat, lon, rangeMiles) {
+            return AIRPORTS.filter(airport => {
+                const dist = getDistance(lat, lon, airport.lat, airport.lon);
+                return dist <= rangeMiles;
+            }).sort((a, b) => {
+                return getDistance(lat, lon, a.lat, a.lon) - getDistance(lat, lon, b.lat, b.lon);
+            });
+        }
+
+        function showAirportSelection(airports, onSelect) {
+            const selectionModal = document.getElementById('airportSelectionModal');
+            const listContainer = document.getElementById('airportList');
+            listContainer.innerHTML = '';
+
+            airports.forEach(airport => {
+                const btn = document.createElement('button');
+                btn.className = 'airport-option-btn';
+                btn.innerHTML = `<strong>${airport.code}</strong> - ${airport.name}`;
+                btn.onclick = () => {
+                    onSelect(airport);
+                    selectionModal.classList.remove('active');
+                };
+                listContainer.appendChild(btn);
+            });
+
+            selectionModal.classList.add('active');
+        }
 
         searchBtn.onclick = () => modal.classList.add('active');
         closeBtn.onclick = () => modal.classList.remove('active');
