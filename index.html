@@ -693,12 +693,13 @@
                 </div>
             `;
 
-            const dateStr = date.toISOString().split('T')[0];
-            const url = `http://api.aviationstack.com/v1/flights?access_key=${AVIATIONSTACK_KEY}&dep_iata=${origin}&arr_iata=${dest}&flight_date=${dateStr}`;
+            const url = `http://api.aviationstack.com/v1/flights?access_key=${AVIATIONSTACK_KEY}&dep_iata=${origin}&arr_iata=${dest}`;
 
             try {
                 const response = await fetch(url);
                 const data = await response.json();
+
+                console.log('AviationStack Response:', data); // Verbose logging for debugging
 
                 container.innerHTML = ''; // Clear loader
 
