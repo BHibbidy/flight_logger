@@ -432,7 +432,7 @@
 </head>
 
 <body>
-    <div class="version-tag">v1.1.0</div>
+    <div class="version-tag">v1.1.1</div>
     <h1>FlightLogger</h1>
 
     <div class="action-container">
@@ -694,13 +694,22 @@
             `;
 
             const dateStr = date.toISOString().split('T')[0];
-            const url = `https://api.aviationstack.com/v1/flights?access_key=${AVIATIONSTACK_KEY}&dep_iata=${origin}&arr_iata=${dest}&flight_date=${dateStr}`;
+            const url = `http://api.aviationstack.com/v1/flights?access_key=${AVIATIONSTACK_KEY}&dep_iata=${origin}&arr_iata=${dest}&flight_date=${dateStr}`;
 
             try {
                 const response = await fetch(url);
                 const data = await response.json();
 
                 container.innerHTML = ''; // Clear loader
+
+                if (data.error) {
+                    if (data.error.code === 'function_access_restricted') {
+                        container.innerHTML = '<div style="margin-top: 1rem; color: #ff3b30; font-size: 0.8rem; line-height: 1.4;">AviationStack Error: The free plan requires plain HTTP (fixed) or limits specific filters. If you still see this, double check your API key / plan limits.</div>';
+                    } else {
+                        container.innerHTML = `<div style="margin-top: 1rem; color: #ff3b30; font-size: 0.8rem;">API Error: ${data.error.message}</div>`;
+                    }
+                    return;
+                }
 
                 if (data.data && data.data.length > 0) {
                     const [depH, depM] = departTime.split(':').map(Number);
