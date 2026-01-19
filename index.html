@@ -216,41 +216,41 @@
             <form id="searchForm">
                 <div class="form-group">
                     <label for="date">Date</label>
-                    <input type="date" id="date" name="date" required>
+                    <input type="date" id="date" name="entry.215810556" required>
                 </div>
                 <div class="form-group">
                     <label for="airline">Airline</label>
-                    <input type="text" id="airline" name="airline" placeholder="e.g. Delta">
+                    <input type="text" id="airline" name="entry.866386378" placeholder="e.g. Delta">
                 </div>
                 <div class="form-group">
                     <label for="flightNumber">Flight Number</label>
-                    <input type="text" id="flightNumber" name="flightNumber" placeholder="e.g. DL123">
+                    <input type="text" id="flightNumber" name="entry.1306726723" placeholder="e.g. DL123">
                 </div>
                 <div class="form-group">
                     <label for="aircraftType">Aircraft Type</label>
-                    <input type="text" id="aircraftType" name="aircraftType" placeholder="e.g. B738">
+                    <input type="text" id="aircraftType" name="entry.1172216201" placeholder="e.g. B738">
                 </div>
                 <div class="form-group">
                     <label for="origin">Origin</label>
-                    <input type="text" id="origin" name="origin" placeholder="e.g. JFK">
+                    <input type="text" id="origin" name="entry.339908034" placeholder="e.g. JFK">
                 </div>
                 <div class="form-group">
                     <label for="destination">Destination</label>
-                    <input type="text" id="destination" name="destination" placeholder="e.g. LAX">
+                    <input type="text" id="destination" name="entry.546874828" placeholder="e.g. LAX">
                 </div>
                 <div class="form-group">
                     <label for="registration">Registration</label>
-                    <input type="text" id="registration" name="registration" placeholder="e.g. N12345">
+                    <input type="text" id="registration" name="entry.2143971868" placeholder="e.g. N12345">
                 </div>
                 <div class="form-group">
                     <label for="duration">Duration</label>
-                    <input type="text" id="duration" name="duration" placeholder="e.g. 5.5h">
+                    <input type="text" id="duration" name="entry.929127408" placeholder="e.g. 5.5h">
                 </div>
                 <div class="form-group">
                     <label for="distance">Distance</label>
-                    <input type="text" id="distance" name="distance" placeholder="e.g. 2475 NM">
+                    <input type="text" id="distance" name="entry.1758292905" placeholder="e.g. 2475 NM">
                 </div>
-                <button type="submit" class="submit-btn" id="submitBtn">Search</button>
+                <button type="submit" class="submit-btn" id="submitBtn">Submit Flight</button>
             </form>
         </div>
     </div>
@@ -259,6 +259,10 @@
         const modal = document.getElementById('searchModal');
         const searchBtn = document.getElementById('manualSearchBtn');
         const closeBtn = document.getElementById('closeModal');
+        const form = document.getElementById('searchForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScE8mrENUNr7b5xjWbnLuI8XvH2tdkAIIp6l_kjirYQ17DMYA/formResponse';
 
         searchBtn.onclick = () => modal.classList.add('active');
         closeBtn.onclick = () => modal.classList.remove('active');
@@ -269,10 +273,34 @@
             }
         }
 
-        document.getElementById('searchForm').onsubmit = (e) => {
+        form.onsubmit = async (e) => {
             e.preventDefault();
-            alert('Search submitted! Functionality coming soon.');
-            modal.classList.remove('active');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const formData = new FormData(form);
+
+            try {
+                // Post to Google Form
+                await fetch(FORM_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData
+                });
+
+                // Google Forms doesn't support CORS, so we won't get a real status with no-cors.
+                // It treats it as an opaque response. Usually, if it doesn't throw, it likely succeeded.
+                alert('Flight logged successfully!');
+                form.reset();
+                modal.classList.remove('active');
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('Connection error. Please try again or check your internet.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Flight';
+            }
         }
     </script>
 </body>
