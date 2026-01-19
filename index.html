@@ -30,11 +30,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
             margin: 0;
             background: linear-gradient(-45deg, var(--bg-color-1), var(--bg-color-2), var(--bg-color-3), var(--bg-color-1));
             background-size: 400% 400%;
             animation: gradient 20s ease infinite;
+            overflow: hidden;
         }
 
         @keyframes gradient {
@@ -52,23 +54,25 @@
         }
 
         h1 {
+            position: absolute;
+            top: 2rem;
             font-size: 2.5rem;
             font-weight: 200;
             letter-spacing: 0.1rem;
             color: var(--text-color);
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+            margin: 0;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             transition: color 0.3s ease;
             z-index: 1;
         }
 
         .btn-search {
+            position: relative;
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 12px 24px;
-            font-size: 1rem;
+            padding: 16px 32px;
+            font-size: 1.1rem;
             font-weight: 300;
             color: var(--text-color);
             background: rgba(255, 255, 255, 0.1);
@@ -77,7 +81,7 @@
             cursor: pointer;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .btn-search:hover {
