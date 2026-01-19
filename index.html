@@ -57,15 +57,224 @@
             letter-spacing: 0.1rem;
             color: var(--text-color);
             margin-top: 2rem;
+            margin-bottom: 2rem;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             transition: color 0.3s ease;
             z-index: 1;
+        }
+
+        .btn-search {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 300;
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-search:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-search svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .form-container {
+            background: var(--bg-color-1);
+            color: var(--text-color);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-header h2 {
+            margin: 0;
+            font-weight: 300;
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-family: inherit;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .form-group input {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 1rem;
+            background: var(--bg-color-3);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.9;
         }
     </style>
 </head>
 
 <body>
     <h1>FlightLogger</h1>
+
+    <button class="btn-search" id="manualSearchBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        Manual Search
+    </button>
+
+    <div class="modal" id="searchModal">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>Manual Search</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <form id="searchForm">
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="airline">Airline</label>
+                    <input type="text" id="airline" name="airline" placeholder="e.g. Delta">
+                </div>
+                <div class="form-group">
+                    <label for="flightNumber">Flight Number</label>
+                    <input type="text" id="flightNumber" name="flightNumber" placeholder="e.g. DL123">
+                </div>
+                <div class="form-group">
+                    <label for="aircraftType">Aircraft Type</label>
+                    <input type="text" id="aircraftType" name="aircraftType" placeholder="e.g. B738">
+                </div>
+                <div class="form-group">
+                    <label for="origin">Origin</label>
+                    <input type="text" id="origin" name="origin" placeholder="e.g. JFK">
+                </div>
+                <div class="form-group">
+                    <label for="destination">Destination</label>
+                    <input type="text" id="destination" name="destination" placeholder="e.g. LAX">
+                </div>
+                <div class="form-group">
+                    <label for="registration">Registration</label>
+                    <input type="text" id="registration" name="registration" placeholder="e.g. N12345">
+                </div>
+                <div class="form-group">
+                    <label for="duration">Duration</label>
+                    <input type="text" id="duration" name="duration" placeholder="e.g. 5.5h">
+                </div>
+                <div class="form-group">
+                    <label for="distance">Distance</label>
+                    <input type="text" id="distance" name="distance" placeholder="e.g. 2475 NM">
+                </div>
+                <button type="submit" class="submit-btn" id="submitBtn">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('searchModal');
+        const searchBtn = document.getElementById('manualSearchBtn');
+        const closeBtn = document.getElementById('closeModal');
+
+        searchBtn.onclick = () => modal.classList.add('active');
+        closeBtn.onclick = () => modal.classList.remove('active');
+
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        document.getElementById('searchForm').onsubmit = (e) => {
+            e.preventDefault();
+            alert('Search submitted! Functionality coming soon.');
+            modal.classList.remove('active');
+        }
+    </script>
 </body>
 
 </html>
