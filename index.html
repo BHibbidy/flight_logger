@@ -420,6 +420,7 @@
 </head>
 
 <body>
+    <div class="version-tag">v1.0.8</div>
     <h1>FlightLogger</h1>
 
     <div class="action-container">
@@ -666,12 +667,22 @@
         async function searchFlights(origin, dest, date, departTime) {
             if (AVIATIONSTACK_KEY === 'PASTE_YOUR_KEY_HERE') return;
 
+            const container = document.getElementById('suggestionContainer');
+            container.innerHTML = `
+                <div class="search-loader">
+                    <div class="spinner"></div>
+                    <span>Searching for flights...</span>
+                </div>
+            `;
+
             const dateStr = date.toISOString().split('T')[0];
             const url = `https://api.aviationstack.com/v1/flights?access_key=${AVIATIONSTACK_KEY}&dep_iata=${origin}&arr_iata=${dest}&flight_date=${dateStr}`;
 
             try {
                 const response = await fetch(url);
                 const data = await response.json();
+
+                container.innerHTML = ''; // Clear loader
 
                 if (data.data && data.data.length > 0) {
                     const [depH, depM] = departTime.split(':').map(Number);
@@ -686,10 +697,15 @@
 
                     if (match) {
                         displaySuggestion(match);
+                    } else {
+                        container.innerHTML = '<div style="margin-top: 1rem; opacity: 0.5; font-size: 0.8rem;">No matching scheduled flights found.</div>';
                     }
+                } else {
+                    container.innerHTML = '<div style="margin-top: 1rem; opacity: 0.5; font-size: 0.8rem;">No flights found for this route today.</div>';
                 }
             } catch (err) {
                 console.error('Flight search error:', err);
+                container.innerHTML = ''; // Clear on error
             }
         }
 
