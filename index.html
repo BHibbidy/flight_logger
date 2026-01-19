@@ -571,9 +571,11 @@
 
                 // Reset main state
                 isDeparted = false;
+                isArrived = false;
                 actionText.textContent = 'Depart';
                 actionIcon.innerHTML = TAKEOFF_PATH;
                 timeDisplay.textContent = '';
+                arrivalDisplay.textContent = '';
 
             } catch (error) {
                 console.error('Submission error:', error);
