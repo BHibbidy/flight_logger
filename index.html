@@ -497,6 +497,7 @@
         let isDeparted = false;
         let isArrived = false;
         let departureDate = null;
+        let arrivalDate = null;
 
         actionBtn.onclick = () => {
             const now = new Date();
@@ -558,6 +559,7 @@
                 actionText.textContent = 'Log Flight';
                 document.getElementById('actionIcon').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
                 isArrived = true;
+                arrivalDate = new Date();
 
                 // Fetch suggestion after arrival is detected
                 const origin = document.getElementById('origin').value;
@@ -568,15 +570,16 @@
                 }
             } else {
                 // Final Flow - Open Manual Form
-                updateDistanceField();
+                updateFormFields();
                 modal.classList.add('active');
             }
         };
 
-        function updateDistanceField() {
+        function updateFormFields() {
             const originCode = document.getElementById('origin').value;
             const destCode = document.getElementById('destination').value;
             const distanceField = document.getElementById('distance');
+            const durationField = document.getElementById('duration');
 
             if (originCode && destCode) {
                 const origin = AIRPORTS.find(a => a.code === originCode);
@@ -588,6 +591,12 @@
                     const roundedNM = Math.ceil(distNM / 10) * 10;
                     distanceField.value = `${roundedNM} NM`;
                 }
+            }
+
+            if (departureDate && arrivalDate) {
+                const diffMs = arrivalDate - departureDate;
+                const hours = diffMs / 3600000;
+                durationField.value = hours.toFixed(1);
             }
         }
 
@@ -643,8 +652,11 @@
             const container = document.getElementById('suggestionContainer');
             const schedTime = new Date(flight.departure.scheduled).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
+            const aircraftType = flight.aircraft ? (flight.aircraft.iata || flight.aircraft.icao || '') : '';
+            const registration = flight.aircraft ? (flight.aircraft.registration || '') : '';
+
             container.innerHTML = `
-                <div class="suggestion-box" onclick="applySuggestion('${flight.flight.iata}', '${flight.airline.name}')">
+                <div class="suggestion-box" onclick="applySuggestion('${flight.flight.iata}', '${flight.airline.name}', '${aircraftType}', '${registration}')">
                     <h3>Suggested Flight</h3>
                     <div class="suggestion-item">
                         <div class="suggestion-flight">${flight.flight.iata}</div>
@@ -657,9 +669,11 @@
             `;
         }
 
-        window.applySuggestion = (flightNo, airline) => {
+        window.applySuggestion = (flightNo, airline, aircraftType, registration) => {
             document.getElementById('flightNumber').value = flightNo;
             document.getElementById('airline').value = airline;
+            if (aircraftType) document.getElementById('aircraftType').value = aircraftType;
+            if (registration) document.getElementById('registration').value = registration;
             alert(`Suggested flight ${flightNo} selected!`);
         };
 
@@ -761,6 +775,7 @@
             isDeparted = false;
             isArrived = false;
             departureDate = null;
+            arrivalDate = null;
             actionText.textContent = 'Depart';
             document.getElementById('actionIcon').innerHTML = '';
             timeDisplay.textContent = '';
