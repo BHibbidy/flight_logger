@@ -602,20 +602,35 @@
 
         function setArrival(airport, hh, mm) {
             if (airport) {
-                arrivalDisplay.innerHTML = `<span class="editable-code" contenteditable="true" id="editableDest" oninput="document.getElementById('destination').value = this.innerText">${airport.code}</span> &bull; Arrived at ${hh}:${mm}`;
+                arrivalDisplay.innerHTML = `<span class="editable-code" contenteditable="true" id="editableDest" oninput="document.getElementById('destination').value = this.innerText">${airport.code}</span> &bull; Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
                 document.getElementById('destination').value = airport.code;
             } else {
-                arrivalDisplay.textContent = `Arrived at ${hh}:${mm}`;
+                arrivalDisplay.innerHTML = `Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
             }
         }
 
         function setDeparture(airport, hh, mm) {
             if (airport) {
-                timeDisplay.innerHTML = `<span class="editable-code" contenteditable="true" id="editableOrigin" oninput="document.getElementById('origin').value = this.innerText">${airport.code}</span> &bull; Departed at ${hh}:${mm}`;
+                timeDisplay.innerHTML = `<span class="editable-code" contenteditable="true" id="editableOrigin" oninput="document.getElementById('origin').value = this.innerText">${airport.code}</span> &bull; Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
                 document.getElementById('origin').value = airport.code;
             } else {
-                timeDisplay.textContent = `Departed at ${hh}:${mm}`;
+                timeDisplay.innerHTML = `Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
             }
+        }
+
+        function syncTimeEdit(type, timeStr) {
+            const [hh, mm] = timeStr.trim().split(':').map(Number);
+            if (isNaN(hh) || isNaN(mm) || hh < 0 || hh > 23 || mm < 0 || mm > 59) {
+                alert('Invalid time format. Please use HH:MM (24h)');
+                return;
+            }
+
+            if (type === 'departure' && departureDate) {
+                departureDate.setHours(hh, mm, 0, 0);
+            } else if (type === 'arrival' && arrivalDate) {
+                arrivalDate.setHours(hh, mm, 0, 0);
+            }
+            updateFormFields();
         }
 
         async function searchFlights(origin, dest, date, departTime) {
