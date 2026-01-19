@@ -13,12 +13,30 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f2f5;
+            background: linear-gradient(-45deg, #ffffff, #fff8e1, #ffcc80, #ffffff);
+            background-size: 400% 400%;
+            animation: gradient 20s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         h1 {
-            font-size: 3rem;
-            color: #1c1e21;
+            font-size: 3.5rem;
+            color: #333;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1;
         }
     </style>
 </head>
