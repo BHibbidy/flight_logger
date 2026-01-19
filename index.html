@@ -379,6 +379,7 @@
         const arrivalDisplay = document.getElementById('arrivalTimeDisplay');
 
         const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScE8mrENUNr7b5xjWbnLuI8XvH2tdkAIIp6l_kjirYQ17DMYA/formResponse';
+        const DISTANCE_MATRIX_API_KEY = 'BCV2BPW5Vhj2R4LRwJshoHfqElsK1PC618UxZlfPRI78uQlUAaiRqg7WvlHo3seu'; // Replace with your key
 
         let isDeparted = false;
         let isArrived = false;
@@ -388,6 +389,8 @@
             const now = new Date();
             const hh = String(now.getHours()).padStart(2, '0');
             const mm = String(now.getMinutes()).padStart(2, '0');
+
+            departureDate = now;
 
             if (!isDeparted) {
                 // Depart Flow
@@ -415,7 +418,6 @@
 
                 actionText.textContent = 'Arrive';
                 isDeparted = true;
-                departureDate = new Date();
                 document.getElementById('date').valueAsDate = departureDate;
             } else if (!isArrived) {
                 // Arrive Flow
@@ -445,9 +447,53 @@
                 isArrived = true;
             } else {
                 // Final Flow - Open Manual Form
+                if (departureDate) {
+                    document.getElementById('date').valueAsDate = departureDate;
+                }
+
+                // Calculate distance before opening
+                calculateAndFillDistance();
                 modal.classList.add('active');
             }
         };
+
+        async function calculateAndFillDistance() {
+            const originCode = document.getElementById('origin').value;
+            const destCode = document.getElementById('destination').value;
+            const distanceInput = document.getElementById('distance');
+
+            if (!originCode || !destCode) return;
+
+            const originAirport = AIRPORTS.find(a => a.code === originCode);
+            const destAirport = AIRPORTS.find(a => a.code === destCode);
+
+            if (!originAirport || !destAirport) return;
+
+            // Try DistanceMatrix.ai API if key is provided
+            if (DISTANCE_MATRIX_API_KEY && DISTANCE_MATRIX_API_KEY !== 'YOUR_API_KEY_HERE') {
+                try {
+                    const response = await fetch(`https://api.distancematrix.ai/maps/api/distancematrix/json?origins=${originAirport.lat},${originAirport.lon}&destinations=${destAirport.lat},${destAirport.lon}&key=${DISTANCE_MATRIX_API_KEY}`);
+                    const data = await response.json();
+
+                    if (data.status === 'OK' && data.rows[0].elements[0].status === 'OK') {
+                        // Distance in meters
+                        const meters = data.rows[0].elements[0].distance.value;
+                        const nauticalMiles = meters * 0.000539957;
+                        const rounded = Math.ceil(nauticalMiles / 10) * 10;
+                        distanceInput.value = `${rounded} NM`;
+                        return;
+                    }
+                } catch (error) {
+                    console.error('API distance fetch failed:', error);
+                }
+            }
+
+            // Fallback: Haversine formula (Great Circle)
+            const km = getDistance(originAirport.lat, originAirport.lon, destAirport.lat, destAirport.lon) * 1.60934; // getDistance returns miles
+            const nauticalMiles = km * 0.539957;
+            const rounded = Math.ceil(nauticalMiles / 10) * 10;
+            distanceInput.value = `${rounded} NM`;
+        }
 
         function setArrival(airport, hh, mm) {
             if (airport) {
