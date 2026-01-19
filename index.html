@@ -315,77 +315,82 @@
         .airport-option-btn:hover {
             background: var(--bg-color-3);
             color: white;
-            transform: translateX(5px);
-        }
 
-        .editable-code {
-            cursor: text;
-            text-decoration: underline dotted;
-            text-underline-offset: 4px;
-            padding: 0 4px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .editable-code:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .editable-code:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.2);
-            text-decoration: underline solid;
-        }
-
-        .suggestion-box {
-            margin-top: 1.5rem;
-            padding: 1.25rem;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            color: #fff;
-            font-size: 0.95rem;
-            text-align: left;
-            width: 90%;
-            max-width: 300px;
-            backdrop-filter: blur(5px);
-            animation: fadeIn 0.5s ease;
-        }
-
-        .suggestion-box h3 {
-            margin: 0 0 0.5rem 0;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.7;
-        }
-
-        .suggestion-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .suggestion-flight {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .suggestion-time {
-            opacity: 0.8;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
+            .editable-code {
+                cursor: text;
+                text-decoration: underline dotted;
+                text-underline-offset: 4px;
+                padding: 0 4px;
+                border-radius: 4px;
+                transition: background 0.2s;
             }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            /*
+        - [x] Prioritize API Duration in Auto-fill
+        - [x] Research AviationStack duration field
+        - [x] Update `applySuggestion` to handle API duration
+        - [x] Implement fallback to calculated duration
+        */
+
+            .editable-code:hover {
+                background: rgba(255, 255, 255, 0.1);
             }
-        }
+
+            .editable-code:focus {
+                outline: none;
+                background: rgba(255, 255, 255, 0.2);
+                text-decoration: underline solid;
+            }
+
+            .suggestion-box {
+                margin-top: 1.5rem;
+                padding: 1.25rem;
+                background: rgba(0, 0, 0, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                color: #fff;
+                font-size: 0.95rem;
+                text-align: left;
+                width: 90%;
+                max-width: 300px;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.5s ease;
+            }
+
+            .suggestion-box h3 {
+                margin: 0 0 0.5rem 0;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                opacity: 0.7;
+            }
+
+            .suggestion-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .suggestion-flight {
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+
+            .suggestion-time {
+                opacity: 0.8;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
     </style>
 </head>
 
@@ -593,7 +598,7 @@
                 }
             }
 
-            if (departureDate && arrivalDate) {
+            if (departureDate && arrivalDate && !durationField.value) { // Only calculate if duration isn't already set by API
                 const diffMs = arrivalDate - departureDate;
                 const hours = diffMs / 3600000;
                 durationField.value = hours.toFixed(1);
@@ -670,8 +675,19 @@
             const aircraftType = flight.aircraft ? (flight.aircraft.iata || flight.aircraft.icao || '') : '';
             const registration = flight.aircraft ? (flight.aircraft.registration || '') : '';
 
+            // Calculate API duration
+            let apiDuration = null;
+            if (flight.departure.scheduled && flight.arrival.scheduled) {
+                const dep = new Date(flight.departure.scheduled);
+                const arr = new Date(flight.arrival.scheduled);
+                const diffMs = arr - dep;
+                if (diffMs > 0) {
+                    apiDuration = (diffMs / 3600000).toFixed(1);
+                }
+            }
+
             container.innerHTML = `
-                <div class="suggestion-box" onclick="applySuggestion('${flight.flight.iata}', '${flight.airline.name}', '${aircraftType}', '${registration}')">
+                <div class="suggestion-box" onclick="applySuggestion('${flight.flight.iata}', '${flight.airline.name}', '${aircraftType}', '${registration}', ${apiDuration})">
                     <h3>Suggested Flight</h3>
                     <div class="suggestion-item">
                         <div class="suggestion-flight">${flight.flight.iata}</div>
@@ -684,11 +700,12 @@
             `;
         }
 
-        window.applySuggestion = (flightNo, airline, aircraftType, registration) => {
+        window.applySuggestion = (flightNo, airline, aircraftType, registration, apiDuration) => {
             document.getElementById('flightNumber').value = flightNo;
             document.getElementById('airline').value = airline;
             if (aircraftType) document.getElementById('aircraftType').value = aircraftType;
             if (registration) document.getElementById('registration').value = registration;
+            if (apiDuration) document.getElementById('duration').value = apiDuration;
             alert(`Suggested flight ${flightNo} selected!`);
         };
 
