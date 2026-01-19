@@ -416,11 +416,23 @@
                 transform: rotate(360deg);
             }
         }
+
+        .version-tag {
+            position: fixed;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            opacity: 0.4;
+            color: var(--text-color);
+            pointer-events: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 
 <body>
-    <div class="version-tag">v1.0.8</div>
+    <div class="version-tag">v1.0.9</div>
     <h1>FlightLogger</h1>
 
     <div class="action-container">
