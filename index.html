@@ -432,7 +432,7 @@
 </head>
 
 <body>
-    <div class="version-tag">v1.0.9</div>
+    <div class="version-tag">v1.1.0</div>
     <h1>FlightLogger</h1>
 
     <div class="action-container">
@@ -539,6 +539,7 @@
 
         let isDeparted = false;
         let isArrived = false;
+        let isSearchPerformed = false;
         let departureDate = null;
         let arrivalDate = null;
 
@@ -599,18 +600,23 @@
                     setArrival(null, hh, mm);
                 }
 
-                actionText.textContent = 'Log Flight';
-                document.getElementById('actionIcon').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
+                actionText.textContent = 'Search';
+                document.getElementById('actionIcon').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
                 isArrived = true;
                 arrivalDate = new Date();
-
-                // Fetch suggestion after arrival is detected
+            } else if (!isSearchPerformed) {
+                // Search Flow
                 const origin = document.getElementById('origin').value;
                 const dest = document.getElementById('destination').value;
                 if (origin && dest && departureDate) {
-                    const departHHMM = timeDisplay.innerText.split('Departed at ')[1];
-                    searchFlights(origin, dest, departureDate, departHHMM);
+                    // Find the time span robustly
+                    const timeSpan = timeDisplay.querySelector('span[onblur*="departure"]');
+                    const timeVal = timeSpan ? timeSpan.innerText : "";
+                    searchFlights(origin, dest, departureDate, timeVal);
                 }
+                actionText.textContent = 'Log Flight';
+                document.getElementById('actionIcon').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
+                isSearchPerformed = true;
             } else {
                 // Final Flow - Open Manual Form
                 updateFormFields();
@@ -859,6 +865,7 @@
             // Reset main state
             isDeparted = false;
             isArrived = false;
+            isSearchPerformed = false;
             departureDate = null;
             arrivalDate = null;
             actionText.textContent = 'Depart';
@@ -898,6 +905,7 @@
                 // Reset main state
                 isDeparted = false;
                 isArrived = false;
+                isSearchPerformed = false;
                 actionText.textContent = 'Depart';
                 document.getElementById('actionIcon').innerHTML = '';
                 timeDisplay.textContent = '';
