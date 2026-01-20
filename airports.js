@@ -1,4 +1,4 @@
-const AIRPORTS = [
+const STATIC_AIRPORTS = [
     { code: 'ABQ', name: 'Albuquerque International Sunport Airport', lat: 35.0401992798, lon: -106.6090011597, tz: 'America/Denver' },
     { code: 'AKL', name: 'Auckland International Airport', lat: -37.0080986023, lon: 174.7920074463, tz: 'Pacific/Auckland' },
     { code: 'ALW', name: 'Walla Walla Regional Airport', lat: 46.09489822, lon: -118.288002, tz: 'America/Los_Angeles' },

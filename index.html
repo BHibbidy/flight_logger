@@ -533,7 +533,7 @@
 </head>
 
 <body>
-    <div class="version-tag">v1.4.0</div>
+    <div class="version-tag">v1.4.1</div>
 
     <div id="successOverlay" class="success-overlay">
         <div class="success-checkmark">
@@ -654,6 +654,24 @@
         let departureDate = null;
         let arrivalDate = null;
 
+        // Dynamic Airport Discovery
+        let USER_AIRPORTS = JSON.parse(localStorage.getItem('user_airports') || '[]');
+        let AIRPORTS = [...STATIC_AIRPORTS, ...USER_AIRPORTS];
+
+        function saveUserAirport(code, data) {
+            const index = AIRPORTS.findIndex(a => a.code === code);
+            if (index === -1) {
+                const newAirport = { code, ...data };
+                USER_AIRPORTS.push(newAirport);
+                AIRPORTS.push(newAirport);
+                localStorage.setItem('user_airports', JSON.stringify(USER_AIRPORTS));
+                console.log(`Discovered and saved airport: ${code}`);
+            }
+        }
+
+        // Tracking latest GPS for "Unknown" discovery
+        let latestCoords = null;
+
         actionBtn.onclick = () => {
             const now = new Date();
             const hh = String(now.getHours()).padStart(2, '0');
@@ -665,7 +683,8 @@
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
-                            const airportsInRange = findAirportsInRange(position.coords.latitude, position.coords.longitude, 20);
+                            latestCoords = { lat: position.coords.latitude, lon: position.coords.longitude };
+                            const airportsInRange = findAirportsInRange(latestCoords.lat, latestCoords.lon, 20);
                             if (airportsInRange.length === 0) {
                                 setDeparture(null, hh, mm);
                             } else if (airportsInRange.length === 1) {
@@ -693,7 +712,8 @@
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
-                            const airportsInRange = findAirportsInRange(position.coords.latitude, position.coords.longitude, 20);
+                            latestCoords = { lat: position.coords.latitude, lon: position.coords.longitude };
+                            const airportsInRange = findAirportsInRange(latestCoords.lat, latestCoords.lon, 20);
                             if (airportsInRange.length === 0) {
                                 setArrival(null, hh, mm);
                             } else if (airportsInRange.length === 1) {
@@ -764,10 +784,10 @@
             arrivalDisplay.classList.add('active');
             let content = '';
             if (airport) {
-                content = `<span class="editable-code" contenteditable="true" id="editableDest" oninput="document.getElementById('destination').value = this.innerText">${airport.code}</span> &bull; Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
+                content = `<span class="editable-code" contenteditable="true" id="editableDest" onblur="syncCodeEdit('arrival', this.innerText)">${airport.code}</span> &bull; Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
                 document.getElementById('destination').value = airport.code;
             } else {
-                content = `Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
+                content = `<span class="editable-code" contenteditable="true" id="editableDest" onblur="syncCodeEdit('arrival', this.innerText)">???</span> &bull; Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
             }
             arrivalDisplay.innerHTML = `<span class="reveal-content">${content}</span>`;
         }
@@ -776,12 +796,31 @@
             timeDisplay.classList.add('active');
             let content = '';
             if (airport) {
-                content = `<span class="editable-code" contenteditable="true" id="editableOrigin" oninput="document.getElementById('origin').value = this.innerText">${airport.code}</span> &bull; Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
+                content = `<span class="editable-code" contenteditable="true" id="editableOrigin" onblur="syncCodeEdit('departure', this.innerText)">${airport.code}</span> &bull; Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
                 document.getElementById('origin').value = airport.code;
             } else {
-                content = `Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
+                content = `<span class="editable-code" contenteditable="true" id="editableOrigin" onblur="syncCodeEdit('departure', this.innerText)">???</span> &bull; Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
             }
             timeDisplay.innerHTML = `<span class="reveal-content">${content}</span>`;
+        }
+
+        function syncCodeEdit(type, code) {
+            code = code.toUpperCase().trim();
+            if (code === '???' || code === '') return;
+
+            if (type === 'departure') document.getElementById('origin').value = code;
+            else document.getElementById('destination').value = code;
+
+            // If we have GPS coordinates and this code isn't in our list, save it!
+            if (latestCoords && !AIRPORTS.find(a => a.code === code)) {
+                saveUserAirport(code, {
+                    name: `User Discovered (${code})`,
+                    lat: latestCoords.lat,
+                    lon: latestCoords.lon,
+                    tz: Intl.DateTimeFormat().resolvedOptions().timeZone // Best guess: user's current TZ
+                });
+            }
+            updateFormFields();
         }
 
         function syncTimeEdit(type, timeStr) {
@@ -852,6 +891,24 @@
                     });
 
                     if (match) {
+                        // Discovery: If origin or destination are not in our list, save them!
+                        if (!originAirport) {
+                            saveUserAirport(origin, {
+                                name: match.departure.airport || match.departure.iata,
+                                lat: parseFloat(match.departure.latitude) || 0,
+                                lon: parseFloat(match.departure.longitude) || 0,
+                                tz: match.departure.timezone || 'UTC'
+                            });
+                        }
+                        const destAirportInList = AIRPORTS.find(a => a.code === dest);
+                        if (!destAirportInList) {
+                            saveUserAirport(dest, {
+                                name: match.arrival.airport || match.arrival.iata,
+                                lat: parseFloat(match.arrival.latitude) || 0,
+                                lon: parseFloat(match.arrival.longitude) || 0,
+                                tz: match.arrival.timezone || 'UTC'
+                            });
+                        }
                         displaySuggestion(match);
                     } else {
                         container.innerHTML = '<div style="margin: 1rem 0; font-size: 1rem; color: var(--text-color);">No matching scheduled flights found.</div>';
@@ -1008,6 +1065,21 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
             const formData = new FormData(form);
+
+            // Final discovery check: Ensure origin/dest in form are in AIRPORTS
+            const originCode = document.getElementById('origin').value.toUpperCase();
+            const destCode = document.getElementById('destination').value.toUpperCase();
+            [originCode, destCode].forEach(code => {
+                if (code && !AIRPORTS.find(a => a.code === code)) {
+                    saveUserAirport(code, {
+                        name: `User Logged (${code})`,
+                        lat: latestCoords ? latestCoords.lat : 0,
+                        lon: latestCoords ? latestCoords.lon : 0,
+                        tz: Intl.DateTimeFormat().resolvedOptions().timeZone
+                    });
+                }
+            });
+
             try {
                 await fetch(FORM_URL, {
                     method: 'POST',
