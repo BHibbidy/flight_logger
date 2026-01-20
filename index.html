@@ -145,7 +145,7 @@
             backdrop-filter: blur(15px);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .btn-depart:hover {
@@ -180,13 +180,34 @@
         }
 
         .departure-time {
-            height: 2rem;
-            margin-bottom: 2rem;
-            font-size: 1.25rem;
+            height: 0;
+            margin-bottom: 0;
+            font-size: 1.2rem;
             font-weight: 300;
             color: var(--text-color);
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+
+        .departure-time.active {
+            height: 1.8rem;
+            margin-bottom: 1.5rem;
             opacity: 0.8;
-            transition: all 0.3s ease;
+            overflow: visible;
+        }
+
+        .reveal-content {
+            display: inline-block;
+            animation: revealLeft 0.8s ease forwards;
+            clip-path: inset(0 100% 0 0);
+        }
+
+        @keyframes revealLeft {
+            to {
+                clip-path: inset(0 0 0 0);
+            }
         }
 
         /* Modal Styles */
@@ -492,7 +513,7 @@
 </head>
 
 <body>
-    <div class="version-tag">v1.1.7</div>
+    <div class="version-tag">v1.1.8</div>
 
     <div id="successOverlay" class="success-overlay">
         <div class="success-checkmark">
@@ -720,21 +741,27 @@
         }
 
         function setArrival(airport, hh, mm) {
+            arrivalDisplay.classList.add('active');
+            let content = '';
             if (airport) {
-                arrivalDisplay.innerHTML = `<span class="editable-code" contenteditable="true" id="editableDest" oninput="document.getElementById('destination').value = this.innerText">${airport.code}</span> &bull; Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
+                content = `<span class="editable-code" contenteditable="true" id="editableDest" oninput="document.getElementById('destination').value = this.innerText">${airport.code}</span> &bull; Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
                 document.getElementById('destination').value = airport.code;
             } else {
-                arrivalDisplay.innerHTML = `Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
+                content = `Arrived at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('arrival', this.innerText)">${hh}:${mm}</span>`;
             }
+            arrivalDisplay.innerHTML = `<span class="reveal-content">${content}</span>`;
         }
 
         function setDeparture(airport, hh, mm) {
+            timeDisplay.classList.add('active');
+            let content = '';
             if (airport) {
-                timeDisplay.innerHTML = `<span class="editable-code" contenteditable="true" id="editableOrigin" oninput="document.getElementById('origin').value = this.innerText">${airport.code}</span> &bull; Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
+                content = `<span class="editable-code" contenteditable="true" id="editableOrigin" oninput="document.getElementById('origin').value = this.innerText">${airport.code}</span> &bull; Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
                 document.getElementById('origin').value = airport.code;
             } else {
-                timeDisplay.innerHTML = `Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
+                content = `Departed at <span class="editable-code" contenteditable="true" onblur="syncTimeEdit('departure', this.innerText)">${hh}:${mm}</span>`;
             }
+            timeDisplay.innerHTML = `<span class="reveal-content">${content}</span>`;
         }
 
         function syncTimeEdit(type, timeStr) {
@@ -953,6 +980,8 @@
             arrivalDate = null;
             actionText.textContent = 'Depart';
             document.getElementById('actionIcon').innerHTML = '';
+            timeDisplay.classList.remove('active');
+            arrivalDisplay.classList.remove('active');
             timeDisplay.textContent = '';
             arrivalDisplay.textContent = '';
             document.getElementById('suggestionContainer').innerHTML = '';
