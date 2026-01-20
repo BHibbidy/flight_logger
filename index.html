@@ -200,9 +200,20 @@
 
         #suggestionContainer {
             width: 100%;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #suggestionContainer.active {
+            max-height: 400px;
+            opacity: 1;
+            margin-bottom: 1.5rem;
+            overflow: visible;
         }
 
         .reveal-content {
@@ -520,7 +531,7 @@
 </head>
 
 <body>
-    <div class="version-tag">v1.1.9</div>
+    <div class="version-tag">v1.2.0</div>
 
     <div id="successOverlay" class="success-overlay">
         <div class="success-checkmark">
@@ -790,6 +801,8 @@
             if (AVIATIONSTACK_KEY === 'PASTE_YOUR_KEY_HERE') return;
 
             const container = document.getElementById('suggestionContainer');
+            container.classList.add('active');
+
             container.innerHTML = `
                 <div class="search-loader">
                     <div class="spinner"></div>
@@ -991,7 +1004,9 @@
             arrivalDisplay.classList.remove('active');
             timeDisplay.textContent = '';
             arrivalDisplay.textContent = '';
-            document.getElementById('suggestionContainer').innerHTML = '';
+            const suggestionContainer = document.getElementById('suggestionContainer');
+            suggestionContainer.innerHTML = '';
+            suggestionContainer.classList.remove('active');
 
             // Reset form fields
             form.reset();
