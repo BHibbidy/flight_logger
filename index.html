@@ -531,7 +531,7 @@
 </head>
 
 <body>
-    <div class="version-tag">v1.2.1</div>
+    <div class="version-tag">v1.2.2</div>
 
     <div id="successOverlay" class="success-overlay">
         <div class="success-checkmark">
@@ -843,10 +843,10 @@
                     if (match) {
                         displaySuggestion(match);
                     } else {
-                        container.innerHTML = '<div style="margin: 1rem 0; font-size: 1rem;">No matching scheduled flights found.</div>';
+                        container.innerHTML = '<div style="margin: 1rem 0; font-size: 1rem; color: var(--text-color);">No matching scheduled flights found.</div>';
                     }
                 } else {
-                    container.innerHTML = '<div style="margin: 1rem 0; font-size: 1rem;">No flights found for this route today.</div>';
+                    container.innerHTML = '<div style="margin: 1rem 0; font-size: 1rem; color: var(--text-color);">No flights found for this route today.</div>';
                 }
             } catch (err) {
                 console.error('Flight search error:', err);
